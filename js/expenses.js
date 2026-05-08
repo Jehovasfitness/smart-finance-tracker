@@ -6,7 +6,6 @@ let expenseChartInstance = null;
  
 // ── BUDGET ALERT TOAST ────────────────────────────────────
 function showBudgetAlert(category, pct) {
-  // Remove any existing alert first
   var existing = document.getElementById('budgetAlertToast');
   if (existing) existing.remove();
  
@@ -41,7 +40,6 @@ function showBudgetAlert(category, pct) {
   toast.innerHTML = '<span style="font-size:20px">' + icon + '</span><span>' + msg + '</span>';
   document.body.appendChild(toast);
  
-  // Auto-remove after 5 seconds
   setTimeout(function() {
     if (toast && toast.parentNode) {
       toast.style.opacity = '0';
@@ -54,91 +52,75 @@ function showBudgetAlert(category, pct) {
 // ── CHECK BUDGET ALERTS ───────────────────────────────────
 function checkBudgetAlerts(category, expenses, planned) {
   var spendCategories = ['Groceries', 'Bills', 'Healthcare', 'Education'];
-  if (!spendCategories.includes(category)) return; // skip Savings
+  if (!spendCategories.includes(category)) return;
  
   var p = planned[category] || 0;
   var a = expenses[category] || 0;
   if (p === 0) return;
  
   var pct = Math.round((a / p) * 100);
- 
-  if (pct >= 100) {
-    showBudgetAlert(category, pct);
-  } else if (pct >= 80) {
-    showBudgetAlert(category, pct);
-  }
+  if (pct >= 80) showBudgetAlert(category, pct);
 }
  
 // ── ADD EXPENSE ───────────────────────────────────────────
 function addExpense() {
-  const amountInput = document.getElementById('expenseAmount');
+  const amountInput   = document.getElementById('expenseAmount');
   const categoryInput = document.getElementById('expenseCategory');
-  const noteInput = document.getElementById('expenseNote');
-  const msgEl = document.getElementById('expenseMessage');
+  const noteInput     = document.getElementById('expenseNote');
+  const msgEl         = document.getElementById('expenseMessage');
  
   const amount   = Number(amountInput.value);
   const category = categoryInput.value;
   const note     = noteInput.value.trim();
  
-  // Validation
   if (!amount || amount <= 0) {
     msgEl.innerHTML = '<div class="alert alert-error show">Please enter a valid amount greater than 0.</div>';
     return;
   }
  
-  // Load existing expenses from localStorage
+  // ── Save to sf_expenses ──
   let expenses = JSON.parse(localStorage.getItem('sf_expenses')) || {
     Groceries: 0, Bills: 0, Healthcare: 0, Education: 0, Savings: 0
   };
- 
-  // Add to category total
   expenses[category] = (expenses[category] || 0) + amount;
   localStorage.setItem('sf_expenses', JSON.stringify(expenses));
  
-  // Save expenses to Firestore
   if (typeof saveExpenseToFirestore === 'function') saveExpenseToFirestore(expenses);
  
-  // Save transaction record
-  let transactions = JSON.parse(localStorage.getItem('sf_transactions')) || [];
+  // ── Save to sf_transactions ──
   const now = new Date();
-  transactions.unshift({
+  const newTx = {
     id:       Date.now(),
     category: category,
     amount:   amount,
     note:     note || '—',
     date:     now.toLocaleDateString('en-PK'),
     time:     now.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' }),
-  });
+  };
+ 
+  let transactions = JSON.parse(localStorage.getItem('sf_transactions')) || [];
+  transactions.unshift(newTx);
   localStorage.setItem('sf_transactions', JSON.stringify(transactions));
  
-  // Save transaction to Firestore
-  var txToSave = {
-    category:  category,
-    amount:    amount,
-    note:      note || '—',
-    date:      new Date().toLocaleDateString('en-PK'),
-    time:      new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' }),
-    timestamp: new Date().toISOString(),
-    id:        Date.now()
-  };
-  if (typeof saveTransactionToFirestore === 'function') saveTransactionToFirestore(txToSave);
+  if (typeof saveTransactionToFirestore === 'function') {
+    saveTransactionToFirestore({ ...newTx, timestamp: now.toISOString() });
+  }
  
-  // Show success message
+  // ── Success message + clear inputs ──
   msgEl.innerHTML = `<div class="alert alert-success show">✅ Rs. ${amount.toLocaleString('en-PK')} added to ${category}!</div>`;
- 
-  // Clear inputs
   amountInput.value = '';
   noteInput.value   = '';
  
-  // Check budget alerts AFTER saving
-  var planned = JSON.parse(localStorage.getItem('sf_planned')) || {};
+  // ── Check budget alerts ──
+  const planned = JSON.parse(localStorage.getItem('sf_planned')) || {};
   checkBudgetAlerts(category, expenses, planned);
  
-  // Refresh displays
+  // ── Refresh ALL sections so nothing is stale ──
   refreshExpenses();
   refreshDashboard();
+  refreshTransactions();                                          // FIX: was missing
+  if (typeof refreshInsights === 'function') refreshInsights();  // keep insights in sync too
  
-  // Auto-hide message after 3 seconds
   setTimeout(() => { msgEl.innerHTML = ''; }, 3000);
 }
  
@@ -152,6 +134,9 @@ function refreshExpenses() {
   updateExpenseChart(expenses);
   updateHealthScoreDisplay(expenses, planned);
   updateBudgetVsActual(planned, expenses);
+ 
+  // FIX: keep transaction table in sync whenever expenses change
+  if (typeof refreshTransactions === 'function') refreshTransactions();
 }
  
 // ── EXPENSE DOUGHNUT CHART ────────────────────────────────
@@ -159,7 +144,6 @@ function updateExpenseChart(expenses) {
   const ctx = document.getElementById('expenseChart');
   if (!ctx) return;
  
-  // Only include categories with spending > 0
   const activeCategories = Object.keys(expenses).filter(k => expenses[k] > 0);
  
   if (activeCategories.length === 0) {
@@ -223,7 +207,6 @@ function updateHealthScoreDisplay(expenses, planned) {
     return;
   }
  
-  // Use spending-only budget (exclude Savings) — same formula as dashboard & insights
   const spendCats = ['Groceries', 'Bills', 'Healthcare', 'Education'];
   const spendP    = spendCats.reduce((a, c) => a + (planned[c] || 0), 0);
   const spendA    = spendCats.reduce((a, c) => a + (expenses[c] || 0), 0);
@@ -269,13 +252,13 @@ function updateBudgetVsActual(planned, expenses) {
  
   let html = '';
   for (const cat in planned) {
-    const p    = planned[cat]  || 0;
-    const a    = expenses[cat] || 0;
+    const p         = planned[cat]  || 0;
+    const a         = expenses[cat] || 0;
     const diff      = p - a;
     const isSavings = cat === 'Savings';
     const over      = diff < 0 && !isSavings;
     const pct       = p > 0 ? Math.min(100, Math.round((a / p) * 100)) : 0;
-    const barClass    = over ? 'red' : isSavings ? 'green' : pct > 75 ? 'yellow' : 'green';
+    const barClass  = over ? 'red' : isSavings ? 'green' : pct > 75 ? 'yellow' : 'green';
     const statusClass = over ? 'over' : 'ok';
     const statusText  = isSavings
       ? (a >= p ? `Great! Saved ${formatRs(a)} (target: ${formatRs(p)})` : `${formatRs(diff)} remaining to save`)

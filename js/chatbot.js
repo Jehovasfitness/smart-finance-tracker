@@ -46,38 +46,43 @@ function sfSafeReply(ctx, message) {
   }
 }
 
-// ── LANGUAGE DETECTOR (v7: threshold=1, expanded keywords) ────
+// ── LANGUAGE DETECTOR (v7.1: fixed — English words removed, only genuine Roman Urdu/Urdu keywords) ────
 function sfLang(message) {
+  // Only genuine Roman Urdu / Urdu words — NO plain English words
   var urduKeywords = [
-    // Core Urdu words
+    // Greetings / salutations
+    'salam','salaam','assalam','assalamualaikum','subh','bakhair','adaab',
+    // Pronouns / core Urdu
     'kya','hai','hain','mera','meri','mere','kitna','kitni','kitne',
-    'bacha','bachao','paisa','paise','rupay','rupee','mahina','mahine',
-    'shukriya','jazak','shukria','salam','assalam','assalamualaikum',
     'kaun','aap','main','hoon','nahi','na','mat',
+    'mujhe','tumhe','apna','apni','apne','koi','sab','sirf',
+    'thoda','bohot','zaroor','pehle','baad','abhi','lekin','lakin','magar',
+    'phir','tab','jab','toh','tou','naya','purana','zara','bilkul','ekdum','seedha',
+    // Time / frequency (Urdu)
+    'mahina','mahine','mahana','salana','roz','rozana','hafta','hafte','din',
+    // Financial Urdu terms (genuine Roman Urdu — NOT English equivalents)
+    'bacha','bachao','paisa','paise','rupay','rupee',
     'zyada','kam','mehnga','mahangai','bachana','bachaao',
+    'qarz','udhar','bachat','kharch','kharid','kharcha',
+    'jamapunji','tankhwah',
+    // Urdu verbs / conjugations
     'karun','karein','karo','karna','karta','karti','karte',
     'chahye','chahiye','chahta','chahti','chahte',
-    'manzil','target','plan','batao','bata','kyun','kyunke',
-    'thoda','bohot','zaroor','pehle','baad','abhi','aur','ya','lekin',
-    'theek','achha','acha','bura','mushkil','asaan','waqt','din','hafta',
-    'mujhe','tumhe','apna','apni','apne','koi','sab','sirf',
-    'hota','hoti','hote','wala','wali','wale','raha','rahi','rahe',
-    'lena','dena','lena','milna','milega','hoga','hogi','honge',
-    'qarz','loan','udhar','bachat','kharch','kharid','kharcha',
-    'goal','goals','saving','savings','budget','income','salary',
-    'dikhao','dikha','batao','bata','samjhao','samjha',
-    'lakin','magar','phir','tab','jab','agar','toh','tou',
-    'naya','purana','zara','bilkul','ekdum','seedha',
-    'mahana','salana','roz','rozana','hafta','hafte',
+    'batao','bata','dikhao','dikha','samjhao','samjha',
+    'hota','hoti','hote','raha','rahi','rahe',
+    'lena','dena','milna','milega','hoga','hogi','honge',
+    // Misc Urdu
+    'manzil','kyun','kyunke','waqt',
+    'wala','wali','wale',
     'paas','kareeb','door','andar','bahar',
-    'number','amount','total','baqi','baki','remaining',
-    'poora','pura','adha','quarter','half',
-    'strong','weak','safe','unsafe','risk','score',
-    'tips','mashwara','advice','help','madad'
+    'baqi','baki','poora','pura','adha',
+    // Gratitude / courtesy (Urdu)
+    'shukriya','jazak','shukria','mehrbani','nawazish',
+    // Help / advice (Urdu words only)
+    'mashwara','madad','kaise'
   ];
   var m = String(message || '').toLowerCase();
   for (var i = 0; i < urduKeywords.length; i++) {
-    // Use word-boundary-like check: keyword surrounded by non-alpha or start/end
     var kw = urduKeywords[i];
     var idx = m.indexOf(kw);
     while (idx !== -1) {
@@ -732,7 +737,18 @@ function sfReply(ctx, message) {
   ctx.goalTarget   = Number(ctx.goalTarget)   || 0;
   ctx.goalSaved    = Number(ctx.goalSaved)    || 0;
 
-  var lang   = sfLang(message);
+  // Session-aware language detection: detect from keywords, but persist Urdu for short follow-ups
+  var _detected = sfLang(message);
+  var _words = message.trim().split(/\s+/).length;
+  var lang;
+  if (_detected === 'ur') {
+    lang = 'ur';
+  } else if (advisorState.lastLang === 'ur' && _words <= 4) {
+    // Short message in an Urdu session: stay Urdu (handles single-word voice queries)
+    lang = 'ur';
+  } else {
+    lang = 'en';
+  }
   advisorState.lastLang = lang;
   var raw    = message;
   var m      = sfNormalize(message);
@@ -2228,12 +2244,17 @@ document.addEventListener('DOMContentLoaded', function() {
 var sfVoiceState = {
   recognition: null,
   isListening: false,
-  interimText: ''
+  interimText: '',
+  cachedInput: null  // cached reference to the chat input element
 };
 
 // ── Find the chat input using many possible selectors ─────────
 function sfFindChatInput() {
-  // Try the most common IDs and classes used in chat UIs
+  // 1. Return cached reference if still in DOM
+  if (sfVoiceState.cachedInput && document.contains(sfVoiceState.cachedInput)) {
+    return sfVoiceState.cachedInput;
+  }
+  // 2. Try specific selectors first
   var selectors = [
     '#chatInput',
     '#chat-input',
@@ -2259,9 +2280,21 @@ function sfFindChatInput() {
   for (var i = 0; i < selectors.length; i++) {
     try {
       var el = document.querySelector(selectors[i]);
-      if (el) return el;
+      if (el) { sfVoiceState.cachedInput = el; return el; }
     } catch (e) {}
   }
+  // 3. Last resort: grab the first visible input on the page
+  try {
+    var all = document.querySelectorAll('input, textarea');
+    for (var j = 0; j < all.length; j++) {
+      var el2 = all[j];
+      if (el2.type !== 'hidden' && el2.type !== 'submit' && el2.type !== 'button' &&
+          el2.type !== 'checkbox' && el2.type !== 'radio' && el2.offsetParent !== null) {
+        sfVoiceState.cachedInput = el2;
+        return el2;
+      }
+    }
+  } catch (e) {}
   return null;
 }
 
@@ -2408,7 +2441,9 @@ function sfStartVoice() {
   // en-IN handles South Asian (Pakistani/Indian) accent far better than en-US.
   // Roman Urdu words like "batao", "dikhao", "kitna" are recognised more accurately.
   // The normalizer below fixes any remaining misrecognitions before intent detection.
-  rec.lang            = 'en-IN';
+  // en-US is the most reliably supported locale across all browsers/devices.
+  // en-IN was tried but caused "no speech detected" on many mobile devices.
+  rec.lang            = 'en-US';
   rec.continuous      = false;
   rec.interimResults  = true;
   rec.maxAlternatives = 3;
@@ -2444,7 +2479,13 @@ function sfStartVoice() {
       // Show what was heard (raw) so user can see — send the normalized version
       sfShowVoiceStatus('🎙️ Heard: "' + raw + '"' + (normalized !== raw ? '  →  "' + normalized + '"' : ''));
       var inp = sfFindChatInput();
-      if (inp) inp.value = normalized;
+      if (inp) {
+        inp.value = normalized;
+        // Trigger input event so frameworks (Vue/React) detect the change
+        try { inp.dispatchEvent(new Event('input', { bubbles: true })); } catch(e) {}
+      } else {
+        sfShowVoiceStatus('⚠️ Could not find chat input. Tap the text box first, then try voice.');
+      }
     }
   };
 
@@ -2460,7 +2501,11 @@ function sfStartVoice() {
 
     if (captured) {
       var inp = sfFindChatInput();
-      if (inp) inp.value = captured;
+      if (inp) {
+        inp.value = captured;
+        try { inp.dispatchEvent(new Event('input', { bubbles: true })); } catch(e) {}
+        inp.focus();
+      }
       sfSetVoiceBtnState('processing');
       sfShowVoiceStatus('✅ "' + captured + '" — sending…');
       setTimeout(function() {
@@ -2544,6 +2589,7 @@ function sfInjectVoiceButton() {
   // ── 3. Find the input and insert button next to it ────────
   var inp = sfFindChatInput();
   if (inp && inp.parentNode) {
+    sfVoiceState.cachedInput = inp; // cache it for use in onresult/onend
     var par  = inp.parentNode;
     var next = inp.nextSibling;
     // Insert right after the input
