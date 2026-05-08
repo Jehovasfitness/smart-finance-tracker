@@ -2586,7 +2586,7 @@ function sfInjectVoiceButton() {
     '}',
     '.sf-voice-btn:hover { background: #f3f4f6; color: #6366f1; }',
 
-    /* Listening state — red pulsing ring */
+    /* Listening state,red pulsing ring */
     '.sf-voice-btn[data-state="listening"] {',
     '  background: #fee2e2; color: #ef4444;',
     '  box-shadow: 0 0 0 0 rgba(239,68,68,0.5);',
