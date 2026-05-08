@@ -1,5 +1,5 @@
 // ============================================================
-// goals.js — Savings goal tracker
+// goals.js Savings goal tracker
 // ============================================================
 
 function saveGoal() {
