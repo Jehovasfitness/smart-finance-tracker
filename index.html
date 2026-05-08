@@ -3,550 +3,604 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Smart Finance Tracker — Manage your money, beat inflation, and track expenses with AI." />
+  <meta name="theme-color" content="#4F46E5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>Smart Finance Tracker</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    .auth-divider{display:flex;align-items:center;gap:12px;margin:16px 0}
-    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:#E2E8F0}
-    .auth-divider span{font-size:12px;color:#94A3B8;font-weight:500}
-    .btn-google{width:100%;padding:11px 16px;border:1.5px solid #dadce0;border-radius:10px;
-      background:#fff;color:#3c4043;font-size:14px;font-weight:600;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;gap:10px;
-      transition:all 0.2s;margin-bottom:4px;font-family:inherit}
-    .btn-google:hover{background:#f8f9fa;border-color:#c0c4cc;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-  </style>
 </head>
+
 <body>
- 
+
 <!-- ============================================================
      AUTH SCREEN
      ============================================================ -->
 <div id="authScreen">
   <div class="auth-wrapper">
     <div class="auth-card">
- 
+
       <div class="auth-logo">
         <div class="logo-icon">💰</div>
         <h1>Smart Finance Tracker</h1>
         <p>Manage your money. Beat inflation.</p>
       </div>
- 
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="loginTabBtn" onclick="showAuthTab('login')">Login</button>
-        <button class="auth-tab" id="signupTabBtn" onclick="showAuthTab('signup')">Sign Up</button>
+
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="auth-tab active" id="loginTabBtn"
+          role="tab" aria-selected="true" onclick="showAuthTab('login')">Login</button>
+        <button type="button" class="auth-tab" id="signupTabBtn"
+          role="tab" aria-selected="false" onclick="showAuthTab('signup')">Sign Up</button>
       </div>
- 
-      <div class="alert alert-error"   id="authError"></div>
-      <div class="alert alert-success" id="authSuccess"></div>
- 
+
+      <div class="alert alert-error"   id="authError"   role="alert"></div>
+      <div class="alert alert-success" id="authSuccess" role="alert"></div>
+
       <!-- LOGIN FORM -->
-      <div id="loginForm">
+      <form id="loginForm" onsubmit="handleLogin(); return false;" novalidate>
         <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" id="loginEmail" placeholder="you@example.com" />
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com"
+            autocomplete="email" inputmode="email" />
         </div>
         <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="loginPassword" placeholder="Enter your password" />
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password"
+            autocomplete="current-password" />
         </div>
-        <button class="btn btn-primary" onclick="handleLogin()">Login to Dashboard</button>
+        <button type="submit" class="btn btn-primary btn-block">Login to Dashboard</button>
         <div class="auth-divider"><span>or</span></div>
-        <button class="btn btn-google" onclick="handleGoogleSignIn()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google"/>
+        <button type="button" class="btn-google" onclick="handleGoogleSignIn()">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            width="18" height="18" alt="Google" loading="lazy" />
           Continue with Google
         </button>
-        <div class="auth-switch">No account? <a onclick="showAuthTab('signup')">Create one free</a></div>
-      </div>
- 
+        <div class="auth-switch">No account? <a role="button" tabindex="0" onclick="showAuthTab('signup')">Create one free</a></div>
+      </form>
+
       <!-- SIGNUP FORM -->
-      <div id="signupForm" class="hidden">
+      <form id="signupForm" class="hidden" onsubmit="handleSignup(); return false;" novalidate>
         <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" id="signupName" placeholder="e.g. Ahmed Khan" />
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" placeholder="e.g. Ahmed Khan"
+            maxlength="60" autocomplete="name" />
         </div>
         <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" id="signupEmail" placeholder="you@example.com" />
+          <label for="signupEmail">Email Address</label>
+          <input type="email" id="signupEmail" placeholder="you@example.com"
+            autocomplete="email" inputmode="email" />
         </div>
         <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="signupPassword" placeholder="Minimum 6 characters" />
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" placeholder="Minimum 6 characters"
+            autocomplete="new-password" />
         </div>
-        <button class="btn btn-primary" onclick="handleSignup()">Create Account</button>
+        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
         <div class="auth-divider"><span>or</span></div>
-        <button class="btn btn-google" onclick="handleGoogleSignIn()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google"/>
+        <button type="button" class="btn-google" onclick="handleGoogleSignIn()">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            width="18" height="18" alt="Google" loading="lazy" />
           Sign up with Google
         </button>
-        <div class="auth-switch">Already have an account? <a onclick="showAuthTab('login')">Login</a></div>
-      </div>
- 
+        <div class="auth-switch">Already have an account? <a role="button" tabindex="0" onclick="showAuthTab('login')">Login</a></div>
+      </form>
+
     </div>
   </div>
 </div>
- 
- 
+
+
 <!-- ============================================================
      MAIN APP
      ============================================================ -->
 <div id="appScreen" class="hidden">
-<div class="app-layout">
- 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-row">
-        <div class="logo-icon">💰</div>
-        <div><h2>Smart Finance</h2><span>Tracker</span></div>
-      </div>
-    </div>
- 
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Main Menu</div>
-      <button class="nav-item active" id="nav-dashboard"    onclick="showSection('dashboard',    this)"><span class="nav-icon">📊</span> Dashboard</button>
-      <button class="nav-item"        id="nav-expenses"     onclick="showSection('expenses',     this)"><span class="nav-icon">💸</span> Expenses</button>
-      <button class="nav-item"        id="nav-transactions" onclick="showSection('transactions', this)"><span class="nav-icon">📋</span> Transactions</button>
-      <button class="nav-item"        id="nav-insights"     onclick="showSection('insights',     this)"><span class="nav-icon">📈</span> Insights</button>
-      <div class="nav-section-label">Tools</div>
-      <button class="nav-item"        id="nav-inflation"    onclick="showSection('inflation',    this)"><span class="nav-icon">📉</span> Inflation</button>
-      <button class="nav-item"        id="nav-goals"        onclick="showSection('goals',        this)"><span class="nav-icon">🎯</span> Goals</button>
-      <button class="nav-item"        id="nav-advisor"      onclick="showSection('advisor',      this)"><span class="nav-icon">🤖</span> AI Advisor</button>
-    </nav>
- 
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar" id="userAvatar">U</div>
-        <div>
-          <div class="user-name"  id="sidebarUserName">User</div>
-          <div class="user-email" id="sidebarUserEmail">email</div>
-        </div>
-      </div>
-      <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
-    </div>
-  </aside>
- 
-  <!-- MAIN CONTENT -->
-  <main class="main-content">
- 
-    <!-- Top Header -->
-    <div class="top-header">
-      <div>
-        <div class="page-title"    id="headerTitle">Dashboard</div>
-        <div class="page-subtitle" id="headerSubtitle">Your financial overview</div>
-      </div>
-      <div class="header-right">
-        <div class="date-badge" id="currentDate"></div>
-        <button class="dark-toggle" onclick="toggleDarkMode()" id="darkToggleBtn" title="Toggle Dark Mode">🌙</button>
-      </div>
-    </div><!-- end top-header -->
- 
-    <div class="page-content">
- 
-      <!-- ==============================
-           DASHBOARD SECTION
-           ============================== -->
-      <div id="section-dashboard" class="section active">
- 
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Budget Setup</div>
-              <div class="card-subtitle">Enter your monthly income to calculate your budget</div>
-            </div>
-          </div>
-          <div class="input-row">
-            <div class="form-group" style="margin:0">
-              <label>Monthly Income (Rs.)</label>
-              <input type="number" id="incomeInput" placeholder="e.g. 50000" />
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>Inflation Rate (%)</label>
-              <input type="number" id="inflationInput" placeholder="e.g. 5" />
-            </div>
-            <button class="btn btn-primary"   onclick="calculateBudget()" style="margin:0;width:auto;padding:11px 24px;">Calculate</button>
-            <button class="btn btn-secondary" onclick="clearAllData()"    style="margin:0;width:auto;padding:11px 20px;">🗑 Clear</button>
+
+  <!-- Mobile sidebar backdrop -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar-logo">
+        <div class="logo-row">
+          <div class="logo-icon">💰</div>
+          <div>
+            <h2>Smart Finance</h2>
+            <span>Tracker</span>
           </div>
         </div>
- 
-        <!-- KPI Cards -->
-        <div class="kpi-grid">
-          <div class="kpi-card blue">
-            <div class="kpi-top">
-              <div class="kpi-label">Planned Budget</div>
-              <div class="kpi-icon blue">📋</div>
-            </div>
-            <div class="kpi-value" id="plannedDisplay">Rs. 0</div>
-            <div class="kpi-meta">Inflation adjusted total</div>
-          </div>
-          <div class="kpi-card orange">
-            <div class="kpi-top">
-              <div class="kpi-label">Actual Spending</div>
-              <div class="kpi-icon orange">💸</div>
-            </div>
-            <div class="kpi-value" id="actualDisplay">Rs. 0</div>
-            <div class="kpi-meta">Total expenses logged</div>
-          </div>
-          <div class="kpi-card green">
-            <div class="kpi-top">
-              <div class="kpi-label">Remaining</div>
-              <div class="kpi-icon green">💰</div>
-            </div>
-            <div class="kpi-value" id="remainingDisplay">Rs. 0</div>
-            <div class="kpi-meta">Budget left this month</div>
-          </div>
-          <div class="kpi-card purple">
-            <div class="kpi-top">
-              <div class="kpi-label">Health Score</div>
-              <div class="kpi-icon purple">❤️</div>
-            </div>
-            <div class="kpi-value" id="healthDisplay">0%</div>
-            <div class="kpi-meta">Financial health rating</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main Menu</div>
+        <button type="button" class="nav-item active" id="nav-dashboard"    onclick="showSection('dashboard',    this)"><span class="nav-icon" aria-hidden="true">📊</span> Dashboard</button>
+        <button type="button" class="nav-item"        id="nav-expenses"     onclick="showSection('expenses',     this)"><span class="nav-icon" aria-hidden="true">💸</span> Expenses</button>
+        <button type="button" class="nav-item"        id="nav-transactions" onclick="showSection('transactions', this)"><span class="nav-icon" aria-hidden="true">📋</span> Transactions</button>
+        <button type="button" class="nav-item"        id="nav-insights"     onclick="showSection('insights',     this)"><span class="nav-icon" aria-hidden="true">📈</span> Insights</button>
+        <div class="nav-section-label">Tools</div>
+        <button type="button" class="nav-item"        id="nav-inflation"    onclick="showSection('inflation',    this)"><span class="nav-icon" aria-hidden="true">📉</span> Inflation</button>
+        <button type="button" class="nav-item"        id="nav-goals"        onclick="showSection('goals',        this)"><span class="nav-icon" aria-hidden="true">🎯</span> Goals</button>
+        <button type="button" class="nav-item"        id="nav-advisor"      onclick="showSection('advisor',      this)"><span class="nav-icon" aria-hidden="true">🤖</span> AI Advisor</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar" aria-hidden="true">U</div>
+          <div class="user-info-text">
+            <div class="user-name"  id="sidebarUserName">User</div>
+            <div class="user-email" id="sidebarUserEmail">email</div>
           </div>
         </div>
- 
-        <div id="riskBanner" class="risk-banner hidden">
-          <span class="risk-icon" id="riskIcon"></span>
-          <span id="riskText"></span>
+        <button type="button" class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
+
+      <!-- Top Header -->
+      <div class="top-header">
+        <button type="button" class="hamburger" id="hamburgerBtn"
+          onclick="toggleSidebar()" aria-label="Toggle menu" aria-expanded="false">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="header-title-group">
+          <div class="page-title"    id="headerTitle">Dashboard</div>
+          <div class="page-subtitle" id="headerSubtitle">Your financial overview</div>
         </div>
- 
-        <div class="grid-2">
+
+        <div class="header-right">
+          <div class="date-badge" id="currentDate"></div>
+          <button type="button" class="dark-toggle" onclick="toggleDarkMode()"
+            id="darkToggleBtn" title="Toggle Dark Mode" aria-label="Toggle dark mode">🌙</button>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <!-- ==============================
+             DASHBOARD
+             ============================== -->
+        <div id="section-dashboard" class="section active">
+
+          <div class="card animate-in">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Budget Setup</div>
+                <div class="card-subtitle">Enter your monthly income to calculate your budget</div>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="form-group form-group--flush">
+                <label for="incomeInput">Monthly Income (Rs.)</label>
+                <input type="number" id="incomeInput" placeholder="e.g. 50000"
+                  min="0" step="1" inputmode="numeric" />
+              </div>
+              <div class="form-group form-group--flush">
+                <label for="inflationInput">Inflation Rate (%)</label>
+                <input type="number" id="inflationInput" placeholder="e.g. 5"
+                  min="0" max="100" step="0.1" inputmode="decimal" />
+              </div>
+              <button type="button" class="btn btn-primary input-row-btn" onclick="calculateBudget()">Calculate</button>
+              <button type="button" class="btn btn-secondary input-row-btn" onclick="clearAllData()">🗑 Clear</button>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card blue animate-in">
+              <div class="kpi-top">
+                <div class="kpi-label">Planned Budget</div>
+                <div class="kpi-icon blue" aria-hidden="true">📋</div>
+              </div>
+              <div class="kpi-value" id="plannedDisplay">Rs. 0</div>
+              <div class="kpi-meta">Inflation adjusted total</div>
+            </div>
+            <div class="kpi-card orange animate-in">
+              <div class="kpi-top">
+                <div class="kpi-label">Actual Spending</div>
+                <div class="kpi-icon orange" aria-hidden="true">💸</div>
+              </div>
+              <div class="kpi-value" id="actualDisplay">Rs. 0</div>
+              <div class="kpi-meta">Total expenses logged</div>
+            </div>
+            <div class="kpi-card green animate-in">
+              <div class="kpi-top">
+                <div class="kpi-label">Remaining</div>
+                <div class="kpi-icon green" aria-hidden="true">💰</div>
+              </div>
+              <div class="kpi-value" id="remainingDisplay">Rs. 0</div>
+              <div class="kpi-meta">Budget left this month</div>
+            </div>
+            <div class="kpi-card purple animate-in">
+              <div class="kpi-top">
+                <div class="kpi-label">Health Score</div>
+                <div class="kpi-icon purple" aria-hidden="true">❤️</div>
+              </div>
+              <div class="kpi-value" id="healthDisplay">0%</div>
+              <div class="kpi-meta">Financial health rating</div>
+            </div>
+          </div>
+
+          <div id="riskBanner" class="risk-banner hidden" role="status">
+            <span class="risk-icon" id="riskIcon" aria-hidden="true"></span>
+            <span id="riskText"></span>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Budget Allocation</div>
+                  <div class="card-subtitle">Breakdown by category</div>
+                </div>
+              </div>
+              <div id="budgetBreakdown">
+                <div class="empty-state">
+                  <span class="empty-icon" aria-hidden="true">📋</span>
+                  <strong>No budget set yet</strong>
+                  <p>Enter your income above and click Calculate</p>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Spending Distribution</div>
+              </div>
+              <div class="chart-container h-72"><canvas id="pieChart"></canvas></div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-header">
               <div>
-                <div class="card-title">Budget Allocation</div>
-                <div class="card-subtitle">Breakdown by category</div>
+                <div class="card-title">Budget vs Actual</div>
+                <div class="card-subtitle">Planned vs what you actually spent</div>
               </div>
             </div>
-            <div id="budgetBreakdown">
-              <div class="empty-state">
-                <span class="empty-icon">📋</span>
-                <strong>No budget set yet</strong>
-                <p>Enter your income above and click Calculate</p>
+            <div class="chart-container h-64"><canvas id="barChart"></canvas></div>
+          </div>
+
+          <div id="smartInsightBox"></div>
+
+        </div><!-- /section-dashboard -->
+
+
+        <!-- ==============================
+             EXPENSES
+             ============================== -->
+        <div id="section-expenses" class="section">
+          <div class="section-heading">💸 Expense Tracker</div>
+          <div class="section-desc">Log and manage your monthly spending</div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Add New Expense</div>
+                  <div class="card-subtitle">Log your spending by category</div>
+                </div>
+              </div>
+              <form onsubmit="addExpense(); return false;" novalidate>
+                <div class="form-group">
+                  <label for="expenseAmount">Amount (Rs.)</label>
+                  <input type="number" id="expenseAmount" placeholder="e.g. 2000"
+                    min="0" step="1" inputmode="numeric" />
+                </div>
+                <div class="form-group">
+                  <label for="expenseCategory">Category</label>
+                  <select id="expenseCategory">
+                    <option value="Groceries">🛒 Groceries</option>
+                    <option value="Bills">🧾 Bills</option>
+                    <option value="Healthcare">🏥 Healthcare</option>
+                    <option value="Education">📚 Education</option>
+                    <option value="Savings">💰 Savings</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="expenseNote">Note (optional)</label>
+                  <input type="text" id="expenseNote" placeholder="e.g. Monthly groceries"
+                    maxlength="100" autocomplete="off" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">+ Add Expense</button>
+              </form>
+              <div id="expenseMessage" class="mt-12"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Expenses by Category</div>
+              </div>
+              <div class="chart-container h-72"><canvas id="expenseChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">💜 Financial Health Score</div>
+              </div>
+              <div id="healthScoreDisplay">
+                <div class="empty-state">
+                  <span class="empty-icon" aria-hidden="true">💜</span>
+                  <strong>No data yet</strong>
+                  <p>Add expenses to see your health score</p>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">📊 Budget vs Actual</div>
+              </div>
+              <div id="budgetVsActual">
+                <div class="empty-state">
+                  <span class="empty-icon" aria-hidden="true">📊</span>
+                  <strong>No budget set</strong>
+                  <p>Set your budget on Dashboard first</p>
+                </div>
               </div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-header"><div class="card-title">Spending Distribution</div></div>
-            <div class="chart-container h-72"><canvas id="pieChart"></canvas></div>
-          </div>
-        </div>
- 
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Budget vs Actual</div>
-              <div class="card-subtitle">Planned vs what you actually spent</div>
-            </div>
-          </div>
-          <div class="chart-container h-64"><canvas id="barChart"></canvas></div>
-        </div>
- 
-        <div id="smartInsightBox"></div>
- 
-      </div><!-- end section-dashboard -->
- 
- 
-      <!-- ==============================
-           EXPENSES SECTION
-           ============================== -->
-      <div id="section-expenses" class="section">
-        <div class="section-heading">💸 Expense Tracker</div>
-        <div class="section-desc">Log and manage your monthly spending</div>
- 
-        <div class="grid-2">
+
+        </div><!-- /section-expenses -->
+
+
+        <!-- ==============================
+             TRANSACTIONS
+             ============================== -->
+        <div id="section-transactions" class="section">
+          <div class="section-heading">📋 Transaction History</div>
+          <div class="section-desc">Complete record of all your expenses</div>
+
           <div class="card">
             <div class="card-header">
               <div>
-                <div class="card-title">Add New Expense</div>
-                <div class="card-subtitle">Log your spending by category</div>
+                <div class="card-title">All Transactions</div>
+                <div class="card-subtitle">Every logged expense in one place</div>
               </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="exportPDF()">📄 Export PDF</button>
             </div>
-            <div class="form-group">
-              <label>Amount (Rs.)</label>
-              <input type="number" id="expenseAmount" placeholder="e.g. 2000" />
-            </div>
-            <div class="form-group">
-              <label>Category</label>
-              <select id="expenseCategory">
-                <option value="Groceries">🛒 Groceries</option>
-                <option value="Bills">🧾 Bills</option>
-                <option value="Healthcare">🏥 Healthcare</option>
-                <option value="Education">📚 Education</option>
-                <option value="Savings">💰 Savings</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Note (optional)</label>
-              <input type="text" id="expenseNote" placeholder="e.g. Monthly groceries" />
-            </div>
-            <button class="btn btn-primary" onclick="addExpense()">+ Add Expense</button>
-            <div id="expenseMessage" class="mt-12"></div>
-          </div>
- 
-          <div class="card">
-            <div class="card-header"><div class="card-title">Expenses by Category</div></div>
-            <div class="chart-container h-72"><canvas id="expenseChart"></canvas></div>
-          </div>
-        </div>
- 
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header"><div class="card-title">💜 Financial Health Score</div></div>
-            <div id="healthScoreDisplay">
+            <div id="transactionTableWrap">
               <div class="empty-state">
-                <span class="empty-icon">💜</span>
-                <strong>No data yet</strong>
-                <p>Add expenses to see your health score</p>
+                <span class="empty-icon" aria-hidden="true">📋</span>
+                <strong>No transactions yet</strong>
+                <p>Add expenses to see them here</p>
               </div>
             </div>
           </div>
+        </div><!-- /section-transactions -->
+
+
+        <!-- ==============================
+             INSIGHTS
+             ============================== -->
+        <div id="section-insights" class="section">
+          <div class="section-heading">📈 Financial Insights</div>
+          <div class="section-desc">Health score, risk classification and recommendations</div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Financial Health Score</div>
+              </div>
+              <div class="gauge-wrap">
+                <svg width="200" height="200" viewBox="0 0 200 200"
+                  role="img" aria-label="Financial health score gauge">
+                  <circle cx="100" cy="100" r="80" stroke="#E2E8F0" stroke-width="16" fill="none"/>
+                  <circle id="gaugeCircle" cx="100" cy="100" r="80"
+                    stroke="#10B981" stroke-width="16" fill="none"
+                    stroke-dasharray="502.65" stroke-dashoffset="502.65"
+                    stroke-linecap="round" transform="rotate(-90 100 100)"
+                    style="transition:stroke-dashoffset 1.2s ease;"/>
+                  <text id="gaugeText" x="100" y="95" text-anchor="middle"
+                    font-size="32" font-weight="800" fill="#1E293B"
+                    font-family="Plus Jakarta Sans">0%</text>
+                  <text x="100" y="118" text-anchor="middle"
+                    font-size="12" fill="#94A3B8"
+                    font-family="Plus Jakarta Sans">Health Score</text>
+                </svg>
+                <div class="gauge-score-label" id="gaugeLabelText">Set your budget to see score</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Risk Classification</div>
+              </div>
+              <div id="riskClassDisplay">
+                <div class="empty-state">
+                  <span class="empty-icon" aria-hidden="true">📈</span>
+                  <strong>No data yet</strong>
+                  <p>Add your budget and expenses first</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="card">
-            <div class="card-header"><div class="card-title">📊 Budget vs Actual</div></div>
-            <div id="budgetVsActual">
+            <div class="card-header">
+              <div class="card-title">💡 Smart Recommendation</div>
+            </div>
+            <div id="adviceDisplay">
               <div class="empty-state">
-                <span class="empty-icon">📊</span>
-                <strong>No budget set</strong>
-                <p>Set your budget on Dashboard first</p>
+                <span class="empty-icon" aria-hidden="true">💡</span>
+                <strong>No recommendation yet</strong>
+                <p>Set a budget to get personalised advice</p>
               </div>
             </div>
           </div>
-        </div>
- 
-      </div><!-- end section-expenses -->
- 
- 
-      <!-- ==============================
-           TRANSACTIONS SECTION
-           ============================== -->
-      <div id="section-transactions" class="section">
-        <div class="section-heading">📋 Transaction History</div>
-        <div class="section-desc">Complete record of all your expenses</div>
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Transaction History</div>
-              <div class="card-subtitle">All your logged expenses</div>
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="exportPDF()">📄 Export PDF</button>
-          </div>
-          <div id="transactionTableWrap">
-            <div class="empty-state">
-              <span class="empty-icon">📋</span>
-              <strong>No transactions yet</strong>
-              <p>Add expenses to see them here</p>
-            </div>
-          </div>
-        </div>
-      </div><!-- end section-transactions -->
- 
- 
-      <!-- ==============================
-           INSIGHTS SECTION
-           ============================== -->
-      <div id="section-insights" class="section">
-        <div class="section-heading">📈 Financial Insights</div>
-        <div class="section-desc">Health score, risk classification and recommendations</div>
- 
-        <div class="grid-2">
+
           <div class="card">
-            <div class="card-header"><div class="card-title">Financial Health Score</div></div>
-            <div class="gauge-wrap">
-              <svg width="200" height="200" viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r="80" stroke="#E2E8F0" stroke-width="16" fill="none"/>
-                <circle id="gaugeCircle" cx="100" cy="100" r="80"
-                  stroke="#10B981" stroke-width="16" fill="none"
-                  stroke-dasharray="502.65" stroke-dashoffset="502.65"
-                  stroke-linecap="round" transform="rotate(-90 100 100)"
-                  style="transition: stroke-dashoffset 1.2s ease;"/>
-                <text id="gaugeText" x="100" y="95" text-anchor="middle"
-                  font-size="32" font-weight="800" fill="#1E293B"
-                  font-family="Plus Jakarta Sans">0%</text>
-                <text x="100" y="118" text-anchor="middle"
-                  font-size="12" fill="#94A3B8"
-                  font-family="Plus Jakarta Sans">Health Score</text>
-              </svg>
-              <div class="gauge-score-label" id="gaugeLabelText">Set your budget to see score</div>
+            <div class="card-header">
+              <div class="card-title">📊 Category Analysis</div>
             </div>
-          </div>
- 
-          <div class="card">
-            <div class="card-header"><div class="card-title">Risk Classification</div></div>
-            <div id="riskClassDisplay">
+            <div id="insightsCategoryBreakdown">
               <div class="empty-state">
-                <span class="empty-icon">📈</span>
-                <strong>No data yet</strong>
-                <p>Add your budget and expenses first</p>
+                <span class="empty-icon" aria-hidden="true">📊</span>
+                <strong>No expenses logged</strong>
+                <p>Start adding expenses to see analysis</p>
               </div>
             </div>
           </div>
-        </div>
- 
-        <div class="card">
-          <div class="card-header"><div class="card-title">💡 Smart Recommendation</div></div>
-          <div id="adviceDisplay">
-            <div class="empty-state">
-              <span class="empty-icon">💡</span>
-              <strong>No recommendation yet</strong>
-              <p>Set a budget to get personalised advice</p>
+
+        </div><!-- /section-insights -->
+
+
+        <!-- ==============================
+             INFLATION
+             ============================== -->
+        <div id="section-inflation" class="section">
+          <div class="section-heading">📉 Inflation Simulator</div>
+          <div class="section-desc">Project how inflation affects your future expenses</div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Simulation Inputs</div>
+                  <div class="card-subtitle">Enter values to project future costs</div>
+                </div>
+              </div>
+              <form onsubmit="calculateInflation(); return false;" novalidate>
+                <div class="form-group">
+                  <label for="presentCost">Present Expense (Rs.)</label>
+                  <input type="number" id="presentCost" placeholder="e.g. 10000"
+                    min="0" step="1" inputmode="numeric" />
+                </div>
+                <div class="form-group">
+                  <label for="inflationRate">Expected Inflation Rate (%)</label>
+                  <input type="number" id="inflationRate" placeholder="e.g. 8"
+                    min="0" max="100" step="0.1" inputmode="decimal" />
+                </div>
+                <div class="form-group">
+                  <label for="yearsAhead">Years Ahead</label>
+                  <input type="number" id="yearsAhead" placeholder="e.g. 5"
+                    min="1" max="50" step="1" inputmode="numeric" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">📉 Simulate Future Cost</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Projected Future Expense</div>
+              </div>
+              <div class="inflation-result">
+                <div class="inflation-result-label">Future cost will be</div>
+                <div class="inflation-amount" id="futureCostDisplay">—</div>
+                <div id="inflationIncrease"></div>
+                <div class="inflation-result-note">Based on compound inflation formula</div>
+              </div>
             </div>
           </div>
-        </div>
- 
-        <div class="card">
-          <div class="card-header"><div class="card-title">📊 Category Analysis</div></div>
-          <div id="insightsCategoryBreakdown">
-            <div class="empty-state">
-              <span class="empty-icon">📊</span>
-              <strong>No expenses logged</strong>
-              <p>Start adding expenses to see analysis</p>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">💡 Long-Term Financial Insight</div>
+            </div>
+            <div id="inflationAdvice">
+              <div class="empty-state">
+                <span class="empty-icon" aria-hidden="true">📉</span>
+                <strong>Run a simulation</strong>
+                <p>Enter values above and click Simulate</p>
+              </div>
             </div>
           </div>
-        </div>
- 
-      </div><!-- end section-insights -->
- 
- 
-      <!-- ==============================
-           INFLATION SECTION
-           ============================== -->
-      <div id="section-inflation" class="section">
-        <div class="section-heading">📉 Inflation Simulator</div>
-        <div class="section-desc">Project how inflation affects your future expenses</div>
- 
-        <div class="grid-2">
+
+        </div><!-- /section-inflation -->
+
+
+        <!-- ==============================
+             GOALS
+             ============================== -->
+        <div id="section-goals" class="section">
+          <div class="section-heading">🎯 Savings Goals</div>
+          <div class="section-desc">Set and track your monthly savings targets</div>
+
           <div class="card">
             <div class="card-header">
               <div>
-                <div class="card-title">Simulation Inputs</div>
-                <div class="card-subtitle">Enter values to project future costs</div>
+                <div class="card-title">Set Savings Goal</div>
+                <div class="card-subtitle">Define your monthly savings target</div>
               </div>
             </div>
-            <div class="form-group">
-              <label>Present Expense (Rs.)</label>
-              <input type="number" id="presentCost" placeholder="e.g. 10000" />
-            </div>
-            <div class="form-group">
-              <label>Expected Inflation Rate (%)</label>
-              <input type="number" id="inflationRate" placeholder="e.g. 8" />
-            </div>
-            <div class="form-group">
-              <label>Years Ahead</label>
-              <input type="number" id="yearsAhead" placeholder="e.g. 5" />
-            </div>
-            <button class="btn btn-primary" onclick="calculateInflation()">📉 Simulate Future Cost</button>
-          </div>
- 
-          <div class="card">
-            <div class="card-header"><div class="card-title">Projected Future Expense</div></div>
-            <div class="inflation-result">
-              <div style="font-size:13px;color:var(--text-light);margin-bottom:8px;">Future cost will be</div>
-              <div class="inflation-amount" id="futureCostDisplay">—</div>
-              <div id="inflationIncrease"></div>
-              <div style="font-size:12px;color:var(--text-light);margin-top:16px;">Based on compound inflation formula</div>
+            <div class="input-row">
+              <div class="form-group form-group--flush">
+                <label for="goalName">Goal Name</label>
+                <input type="text" id="goalName" placeholder="e.g. Emergency Fund"
+                  maxlength="50" autocomplete="off" />
+              </div>
+              <div class="form-group form-group--flush">
+                <label for="goalAmount">Target Amount (Rs.)</label>
+                <input type="number" id="goalAmount" placeholder="e.g. 100000"
+                  min="0" step="1" inputmode="numeric" />
+              </div>
+              <button type="button" class="btn btn-green input-row-btn"     onclick="saveGoal()">🎯 Set Goal</button>
+              <button type="button" class="btn btn-secondary input-row-btn" onclick="clearGoal()">Clear</button>
             </div>
           </div>
-        </div>
- 
-        <div class="card">
-          <div class="card-header"><div class="card-title">💡 Long-Term Financial Insight</div></div>
-          <div id="inflationAdvice">
-            <div class="empty-state">
-              <span class="empty-icon">📉</span>
-              <strong>Run a simulation</strong>
-              <p>Enter values above and click Simulate</p>
-            </div>
-          </div>
-        </div>
- 
-      </div><!-- end section-inflation -->
- 
- 
-      <!-- ==============================
-           GOALS SECTION
-           ============================== -->
-      <div id="section-goals" class="section">
-        <div class="section-heading">🎯 Savings Goals</div>
-        <div class="section-desc">Set and track your monthly savings targets</div>
- 
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Set Savings Goal</div>
-              <div class="card-subtitle">Define your monthly savings target</div>
-            </div>
-          </div>
-          <div class="input-row">
-            <div class="form-group" style="margin:0">
-              <label>Goal Name</label>
-              <input type="text" id="goalName" placeholder="e.g. Emergency Fund" />
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>Target Amount (Rs.)</label>
-              <input type="number" id="goalAmount" placeholder="e.g. 100000" />
-            </div>
-            <button class="btn btn-green"     onclick="saveGoal()"  style="margin:0;width:auto;padding:11px 24px;">🎯 Set Goal</button>
-            <button class="btn btn-secondary" onclick="clearGoal()" style="margin:0;width:auto;padding:11px 20px;">Clear</button>
-          </div>
-        </div>
- 
-        <div id="goalProgressCard">
-          <div class="card">
-            <div class="empty-state">
-              <span class="empty-icon">🎯</span>
-              <strong>No goal set yet</strong>
-              <p>Set a savings goal above to track your progress</p>
-            </div>
-          </div>
-        </div>
- 
-      </div><!-- end section-goals -->
- 
- 
-      <!-- ==============================
-           AI ADVISOR SECTION
-           ============================== -->
-      <div id="section-advisor" class="section">
-        <div class="section-heading">🤖 AI Financial Advisor</div>
-        <div class="section-desc">Smart AI Advisor — reads your real financial data</div>
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">🤖 AI Financial Advisor</div>
-              <div class="card-subtitle">Smart advisor — reads your real financial data</div>
-            </div>
-          </div>
- 
-          <div class="chat-window" id="chatWindow">
-            <div class="chat-bubble-wrap bot">
-              <div class="chat-bubble">
-                👋 Hi! I'm your AI financial advisor. I can see your budget and expenses.
-                Ask me anything!<br><br>
-                Try: <em>"What is my risk level?"</em> or <em>"How can I save more?"</em>
+
+          <div id="goalProgressCard">
+            <div class="card">
+              <div class="empty-state">
+                <span class="empty-icon" aria-hidden="true">🎯</span>
+                <strong>No goal set yet</strong>
+                <p>Set a savings goal above to track your progress</p>
               </div>
             </div>
           </div>
- 
-          <div class="chat-input-row">
-            <input type="text" id="chatInput"
-              placeholder="Ask about your finances..."
-              onkeydown="if(event.key==='Enter') sendChatMessage()" />
-            <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+
+        </div><!-- /section-goals -->
+
+
+        <!-- ==============================
+             AI ADVISOR
+             ============================== -->
+        <div id="section-advisor" class="section">
+          <div class="section-heading">🤖 AI Financial Advisor</div>
+          <div class="section-desc">Smart advisor — reads your real financial data</div>
+
+          <div class="card">
+            <!--
+              chatWindow is intentionally EMPTY.
+              chatbot.js injects the welcome message + quick-reply chips via DOMContentLoaded.
+              Do NOT add a hardcoded bubble here — causes duplicates.
+            -->
+            <div class="chat-window" id="chatWindow"
+              role="log" aria-live="polite" aria-label="Chat messages"></div>
+
+            <div class="chat-input-row">
+              <input
+                type="text"
+                id="chatInput"
+                placeholder="Ask about your finances..."
+                onkeydown="handleChatKey(event)"
+                autocomplete="off"
+                maxlength="300"
+                inputmode="text"
+                aria-label="Chat message"
+              />
+              <button type="button" class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+            </div>
           </div>
-        </div>
-      </div><!-- end section-advisor -->
- 
-    </div><!-- end page-content -->
-  </main>
- 
-</div><!-- end app-layout -->
-</div><!-- end appScreen -->
- 
- 
+        </div><!-- /section-advisor -->
+
+      </div><!-- /page-content -->
+    </main>
+
+  </div><!-- /app-layout -->
+</div><!-- /appScreen -->
+
+
 <!-- ============================================================
-     JS FILES — loaded in order
+     JS FILES — loaded in dependency order
      ============================================================ -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -562,177 +616,241 @@
 <script src="js/pdf-export.js"></script>
 <script src="js/db.js"></script>
 <script src="js/auth.js"></script>
- 
+
 <script>
-// ── Apply dark mode BEFORE page renders to avoid flash ──
-(function() {
+/* ============================================================
+   index.html inline JS — app shell logic only.
+   No business logic here — that lives in the JS files above.
+   ============================================================ */
+
+// ── Dark mode: apply BEFORE render to prevent flash ───────────
+(function () {
   if (localStorage.getItem('sf_dark_mode') === 'true') {
     document.body.classList.add('dark-mode');
   }
-})();
- 
-// ── Set today's date ──
+}());
+
+// ── Today's date ───────────────────────────────────────────────
 function setCurrentDate() {
-  const now = new Date();
-  const el = document.getElementById('currentDate');
-  if (el) el.textContent = now.toLocaleDateString('en-PK', {
-    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  var el = document.getElementById('currentDate');
+  if (!el) return;
+  el.textContent = new Date().toLocaleDateString('en-PK', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 }
- 
-// ── Dark Mode Toggle ──
+
+// ── Dark Mode Toggle ───────────────────────────────────────────
 function toggleDarkMode() {
   document.body.classList.toggle('dark-mode');
   var isDark = document.body.classList.contains('dark-mode');
-  localStorage.setItem('sf_dark_mode', isDark);
+  localStorage.setItem('sf_dark_mode', String(isDark));
   var btn = document.getElementById('darkToggleBtn');
   if (btn) btn.textContent = isDark ? '☀️' : '🌙';
 }
- 
-// ── Set correct icon on load ──
-document.addEventListener('DOMContentLoaded', function() {
-  var btn = document.getElementById('darkToggleBtn');
-  if (btn && document.body.classList.contains('dark-mode')) {
-    btn.textContent = '☀️';
-  }
+
+// ── Mobile sidebar ─────────────────────────────────────────────
+function toggleSidebar() {
+  var sidebar  = document.getElementById('sidebar');
+  var backdrop = document.getElementById('sidebarBackdrop');
+  var btn      = document.getElementById('hamburgerBtn');
+  if (!sidebar) return;
+  var isOpen = sidebar.classList.toggle('open');
+  if (backdrop) backdrop.classList.toggle('visible', isOpen);
+  if (btn) btn.setAttribute('aria-expanded', String(isOpen));
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+function closeSidebar() {
+  var sidebar  = document.getElementById('sidebar');
+  var backdrop = document.getElementById('sidebarBackdrop');
+  var btn      = document.getElementById('hamburgerBtn');
+  if (!sidebar) return;
+  sidebar.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('visible');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+
+// Close sidebar on Escape key
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') closeSidebar();
 });
- 
-// ── Switch between Login and Signup tabs ──
+
+// ── DOMContentLoaded — single init point ──────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  var btn = document.getElementById('darkToggleBtn');
+  if (btn && document.body.classList.contains('dark-mode')) btn.textContent = '☀️';
+  setCurrentDate();
+  setInterval(setCurrentDate, 60000);
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 768) closeSidebar();
+  });
+});
+
+// ── Auth tab switcher ──────────────────────────────────────────
 function showAuthTab(tab) {
-  if (tab === 'login') {
-    document.getElementById('loginForm').classList.remove('hidden');
-    document.getElementById('signupForm').classList.add('hidden');
-    document.getElementById('loginTabBtn').classList.add('active');
-    document.getElementById('signupTabBtn').classList.remove('active');
-  } else {
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('signupForm').classList.remove('hidden');
-    document.getElementById('loginTabBtn').classList.remove('active');
-    document.getElementById('signupTabBtn').classList.add('active');
-  }
+  var isLogin = tab === 'login';
+  document.getElementById('loginForm') .classList.toggle('hidden', !isLogin);
+  document.getElementById('signupForm').classList.toggle('hidden',  isLogin);
+  var loginBtn  = document.getElementById('loginTabBtn');
+  var signupBtn = document.getElementById('signupTabBtn');
+  loginBtn .classList.toggle('active',  isLogin);
+  signupBtn.classList.toggle('active', !isLogin);
+  loginBtn .setAttribute('aria-selected', String(isLogin));
+  signupBtn.setAttribute('aria-selected', String(!isLogin));
   hideAuthMessages();
 }
- 
-// ── Alert helpers ──
+
+// ── Alert helpers ──────────────────────────────────────────────
 function showAuthError(msg) {
-  const el = document.getElementById('authError');
+  var el = document.getElementById('authError');
   el.textContent = msg;
   el.classList.add('show');
   document.getElementById('authSuccess').classList.remove('show');
 }
- 
+
 function showAuthSuccess(msg) {
-  const el = document.getElementById('authSuccess');
+  var el = document.getElementById('authSuccess');
   el.textContent = msg;
   el.classList.add('show');
   document.getElementById('authError').classList.remove('show');
 }
- 
+
 function hideAuthMessages() {
   document.getElementById('authError').classList.remove('show');
   document.getElementById('authSuccess').classList.remove('show');
 }
- 
-// ── Section titles ──
-const sectionTitles = {
+
+// ── Section titles ─────────────────────────────────────────────
+var sectionTitles = {
   dashboard:    { title: 'Dashboard',           subtitle: 'Your financial overview' },
   expenses:     { title: 'Expense Tracker',     subtitle: 'Log and manage your spending' },
   transactions: { title: 'Transaction History', subtitle: 'Complete record of all expenses' },
   insights:     { title: 'Financial Insights',  subtitle: 'Health score and risk analysis' },
   inflation:    { title: 'Inflation Simulator', subtitle: 'Project your future expenses' },
   goals:        { title: 'Savings Goals',       subtitle: 'Track your savings targets' },
-  advisor:      { title: 'AI Advisor',          subtitle: 'Smart AI Advisor' },
+  advisor:      { title: 'AI Advisor',          subtitle: 'Smart Financial Advisor' }
 };
- 
-// ── Switch sections ──
+
+// ── Section switcher — lazy refresh, closes mobile sidebar ────
 function showSection(name, btn) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(function (n) {
+    n.classList.remove('active');
+  });
   if (btn) btn.classList.add('active');
- 
-  const info = sectionTitles[name];
+
+  var info = sectionTitles[name];
   if (info) {
     document.getElementById('headerTitle').textContent    = info.title;
     document.getElementById('headerSubtitle').textContent = info.subtitle;
   }
- 
-  const el = document.getElementById('section-' + name);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
- 
-  refreshDashboard();
-  refreshExpenses();
-  refreshTransactions();
-  refreshInsights();
-  refreshGoals();
+
+  var el = document.getElementById('section-' + name);
+  if (el) {
+    var top = el.getBoundingClientRect().top + window.pageYOffset - 72;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+  }
+
+  var refreshMap = {
+    dashboard:    'refreshDashboard',
+    expenses:     'refreshExpenses',
+    transactions: 'refreshTransactions',
+    insights:     'refreshInsights',
+    goals:        'refreshGoals'
+  };
+  var fn = refreshMap[name];
+  if (fn && typeof window[fn] === 'function') window[fn]();
+
+  if (window.innerWidth <= 768) closeSidebar();
 }
- 
-// ── Show app after login ──
+
+// ── Show app after login ───────────────────────────────────────
 function showApp(user) {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
-  const name    = user.displayName || user.email.split('@')[0];
-  const initial = name.charAt(0).toUpperCase();
+
+  var name    = user.displayName || user.email.split('@')[0] || 'User';
+  var initial = name.charAt(0).toUpperCase();
+
   document.getElementById('sidebarUserName').textContent  = name;
   document.getElementById('sidebarUserEmail').textContent = user.email;
   document.getElementById('userAvatar').textContent       = initial;
+
   setCurrentDate();
   checkMonthlyReset(user);
-  setTimeout(function() { loadUserDataFromFirestore(); }, 300);
+
+  setTimeout(function () {
+    if (typeof loadUserDataFromFirestore === 'function') loadUserDataFromFirestore();
+  }, 300);
 }
- 
-// ── Monthly Reset ──
+
+// ── Monthly auto-reset ─────────────────────────────────────────
 function checkMonthlyReset(user) {
-  const now          = new Date();
-  const currentMonth = now.getFullYear() + '-' + (now.getMonth() + 1);
-  const lastMonth    = localStorage.getItem('sf_last_month');
- 
-  if (!lastMonth) { localStorage.setItem('sf_last_month', currentMonth); return; }
+  var now          = new Date();
+  var currentMonth = now.getFullYear() + '-' + (now.getMonth() + 1);
+  var lastMonth    = localStorage.getItem('sf_last_month');
+
+  if (!lastMonth) {
+    localStorage.setItem('sf_last_month', currentMonth);
+    return;
+  }
   if (lastMonth === currentMonth) return;
- 
-  console.log('New month detected! Resetting expenses for', currentMonth);
+
   localStorage.removeItem('sf_expenses');
   localStorage.removeItem('sf_transactions');
   localStorage.setItem('sf_last_month', currentMonth);
- 
-  if (user) {
+
+  if (user && typeof firebase !== 'undefined') {
     var db = firebase.firestore();
-    db.collection('users').doc(user.uid).set({
-      expenses: {}, updatedAt: new Date().toISOString()
-    }, { merge: true });
+    db.collection('users').doc(user.uid)
+      .set({ expenses: {}, updatedAt: new Date().toISOString() }, { merge: true })
+      .catch(function (err) { console.warn('[Monthly Reset] expenses error:', err); });
+
     db.collection('users').doc(user.uid).collection('transactions').get()
-      .then(function(snapshot) {
+      .then(function (snap) {
         var batch = db.batch();
-        snapshot.forEach(function(doc) { batch.delete(doc.ref); });
+        snap.forEach(function (doc) { batch.delete(doc.ref); });
         return batch.commit();
-      });
+      })
+      .catch(function (err) { console.warn('[Monthly Reset] transactions error:', err); });
   }
- 
-  setTimeout(function() {
-    var banner = document.createElement('div');
-    banner.style.cssText = [
-      'position:fixed','top:20px','left:50%','transform:translateX(-50%)',
-      'background:#10B981','color:white','padding:14px 24px','border-radius:12px',
-      'font-size:14px','font-weight:600','z-index:9999',
-      'box-shadow:0 4px 20px rgba(0,0,0,0.15)','text-align:center'
+
+  setTimeout(function () {
+    var toast = document.createElement('div');
+    toast.style.cssText = [
+      'position:fixed', 'top:20px', 'left:50%', 'transform:translateX(-50%) translateY(-8px)',
+      'background:#10B981', 'color:#fff', 'padding:13px 22px', 'border-radius:12px',
+      'font-size:14px', 'font-weight:600', 'z-index:9999',
+      'box-shadow:0 8px 30px rgba(16,185,129,.35)',
+      'text-align:center', 'pointer-events:none',
+      'transition:all .3s ease', 'opacity:0', 'max-width:90vw'
     ].join(';');
-    banner.innerHTML = '🎉 New Month! Your expenses have been reset. Budget plan kept intact.';
-    document.body.appendChild(banner);
-    setTimeout(function() { banner.remove(); }, 5000);
+    toast.textContent = '🎉 New Month! Expenses reset. Budget kept intact.';
+    document.body.appendChild(toast);
+    requestAnimationFrame(function () {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+    });
+    setTimeout(function () {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(-8px)';
+      setTimeout(function () { toast.remove(); }, 300);
+    }, 4500);
   }, 1500);
 }
- 
-// ── Show auth screen ──
+
+// ── Show auth screen ───────────────────────────────────────────
 function showAuth() {
   document.getElementById('appScreen').classList.add('hidden');
   document.getElementById('authScreen').classList.remove('hidden');
 }
- 
-// ── Format Rs. currency ──
+
+// ── Rs. formatter (shared utility used by all JS files) ────────
 function formatRs(amount) {
-  return 'Rs. ' + Math.round(amount).toLocaleString('en-PK');
+  var n = Math.round(Number(amount) || 0);
+  return 'Rs. ' + n.toLocaleString('en-PK');
 }
- 
-setCurrentDate();
 </script>
- 
+
 </body>
 </html>

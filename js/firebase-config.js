@@ -4,7 +4,7 @@
 
 // Your Firebase project configuration
 const firebaseConfig = {
-  apiKey:            "AIzaSyDOa8G3SM9MRjT_obd7c8mfvhIschenlvM",
+apiKey:            "AIzaSyDOa8G3SM9MRjT_obd7c8mfvhIschenlvM",
   authDomain:        "smart-finance-tracker-3dd7f.firebaseapp.com",
   projectId:         "smart-finance-tracker-3dd7f",
   storageBucket:     "smart-finance-tracker-3dd7f.firebasestorage.app",
